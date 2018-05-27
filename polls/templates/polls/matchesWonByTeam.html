@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>MatchesPerYear</title>
+    <link rel="stylesheet" type="text/css" href="/static/polls/test.css">
+    <script src="https://code.highcharts.com/highcharts.src.js"></script>
+    <script src="/static/polls/test.js">
+   
+    </script>
+
+
+</head>
+
+<body>
+        <div id="container">
+            <script>
+                
+                console.log({{xAxisData|safe}})
+                console.log({{yAxisData|safe}})
+                Highcharts.chart('container',plotMatchesPerYear({{xdata|safe}},{{ydata|safe}}))    
+            </script>
+    
+    </div>
+
+</body>
+
+</html>

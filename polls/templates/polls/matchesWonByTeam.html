@@ -18,8 +18,7 @@
                 
                 console.log({{xAxisData|safe}})
                 console.log({{yAxisData|safe}})
-                console.log({{teams|safe}})
-                Highcharts.chart("container",plotMatchesWonByTeam({{xAxisData|safe}},{{yAxisData|safe}},{{teams|safe}}))    
+                Highcharts.chart('container',plotMatchesPerYear({{xdata|safe}},{{ydata|safe}}))    
             </script>
     
     </div>

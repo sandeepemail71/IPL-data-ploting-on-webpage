@@ -8,8 +8,6 @@ from django.db import transaction, models
 from sortedcontainers import SortedList, SortedDict, SortedSet
 from collections import OrderedDict
 
-'''All THE FUNCTIONS ARE ARRANGE IN THE LEXICOGRAPHICAL ORDER'''
-
 
 # print("file reading matches")
 # file = '/home/dev/workspace/mysite/ipl/matches.csv'
@@ -85,12 +83,7 @@ from collections import OrderedDict
 #                                     wide_runs=match_del[j]['wide_runs'])
 #         temp_match_del.save()
 #     print("deliveries end")
-
-
 # print('end_______________________________')
-
-
-
 
 
 
@@ -101,63 +94,36 @@ def economicalBowlers(request):
     requiedDataFromDBByQuery = Deliveries.objects.values('bowler', 'total_runs').filter(
         match_id_id__in=Matches.objects.values_list('match_id', flat=True).filter(season='2015')).order_by('bowler')
 
-
     # main logic
     economicalBowlerDictionary = dict()
     for delivery in requiedDataFromDBByQuery:
         if(delivery['bowler'] in economicalBowlerDictionary.keys()):
-            economicalBowlerDictionary[delivery['bowler']] = {'runs': economicalBowlerDictionary[delivery['bowler']]['runs']+int(delivery['total_runs']), 'ball': economicalBowlerDictionary[delivery['bowler']]['ball']+1, 'economicity': float("{0:.3f}".format( (
+            economicalBowlerDictionary[delivery['bowler']] = {'runs': economicalBowlerDictionary[delivery['bowler']]['runs']+int(delivery['total_runs']), 'ball': economicalBowlerDictionary[delivery['bowler']]['ball']+1, 'economicity': float("{0:.3f}".format((
                 economicalBowlerDictionary[delivery['bowler']]['runs']+int(delivery['total_runs']))/((economicalBowlerDictionary[delivery['bowler']]['ball']+1)/6)))}
         else:
             economicalBowlerDictionary[delivery['bowler']] = {
                 'runs': int(delivery['total_runs']), 'ball': 1, 'economicity': 0}
-    
 
-    #making key as value and value as a key
-    sortedBowlerDict=SortedDict()
-    for i,j in economicalBowlerDictionary.items():
-        sortedBowlerDict[j['economicity']]=i
-
+    # making key as value and value as a key
+    sortedBowlerDict = SortedDict()
+    for i, j in economicalBowlerDictionary.items():
+        sortedBowlerDict[j['economicity']] = i
 
     # dataSet to plot on xaxis or on y axis
     xAxisData = list(sortedBowlerDict.values())
     yAxisData = list(map(float, sortedBowlerDict.keys()))
 
-
-    #loading template 
+    # loading template
     templte = loader.get_template('polls/economicalBowler.html')
     contaxt = {
-       'xAxisData' :  xAxisData[0:10],
-       'yAxisData' :  yAxisData[0:10]
+        'xAxisData':  xAxisData[0:10],
+        'yAxisData':  yAxisData[0:10]
     }
-
-
     return HttpResponse(templte.render(contaxt, request))
-
-
-
-
-# view to find the matches played per year
-def matchPlayedPerYear(request):
-    matchData = Matches.objects.values('season').annotate(
-        count=models.Count('season')).order_by('season')
-    xData = matchData.values_list('season', flat=True)
-    yData = matchData.values_list('count', flat=True)
-    templte = loader.get_template('polls/matchesPlayedPerYear.html')
-    contaxt = {
-        "xdata": list(map(int, xData)),
-        "ydata": list(map(int, yData))
-    }
-
-    return HttpResponse(templte.render(contaxt, request))
-
-
-
 
 
 # view to find the extra runs bowler
 def extraRuns(request):
-
     extraRunByTeamsDictionary = SortedDict()
     teams = Deliveries.objects.values('extra_runs', 'bowling_team').filter(
         match_id_id__in=Matches.objects.values_list('match_id', flat=True).filter(season='2016')).order_by('bowling_team')
@@ -178,6 +144,52 @@ def extraRuns(request):
         'xdata': xData,
         'ydata': yData
     }
+    return HttpResponse(templte.render(contaxt, request))
 
+
+# view to find the matches played per year
+def matchPlayedPerYear(request):
+    matchData = Matches.objects.values('season').annotate(
+        count=models.Count('season')).order_by('season')
+    xData = matchData.values_list('season', flat=True)
+    yData = matchData.values_list('count', flat=True)
+    templte = loader.get_template('polls/matchesPlayedPerYear.html')
+    contaxt = {
+        "xdata": list(map(int, xData)),
+        "ydata": list(map(int, yData))
+    }
+    return HttpResponse(templte.render(contaxt, request))
+
+
+# view to find the matches won by each teams in each season
+def matchesWonByTeam(request):
+
+    # no of teams who playing the match
+    teams = SortedSet()
+    matchDict = SortedDict()
+    for match in Matches.objects.values().exclude(winner= ''):
+            teams.add(match['winner'])
+            if(match['season'] in matchDict.keys()):
+                matchDict[match['season']][match['winner']] = matchDict[match['season']][match['winner']
+                            ]+1 if(match['winner'] in matchDict[match['season']].keys()) else 1
+            else:
+                matchDict[match['season']] = SortedDict({match['winner']: 1})
+
+
+
+    # matrix form data of won matches by each team in each season
+    listOfTeams = [[matchDict[key][l] if(l in matchDict[key].keys()) else 0 for key in matchDict.keys()] for l in teams ]
+    
+    #print(listOfTeams)
+
+    print(json.dumps(matchDict,indent=4))
+
+
+    templte = loader.get_template('polls/matchesWonByTeam.html')
+    contaxt = {
+        "xAxisData": list(matchDict.keys()),
+        "yAxisData": listOfTeams,
+        "teams": list(teams)
+    }
     return HttpResponse(templte.render(contaxt, request))
 

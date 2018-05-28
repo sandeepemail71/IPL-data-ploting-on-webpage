@@ -13,12 +13,20 @@
 </head>
 
 <body>
+    <!-- <nav>
+        <div>
+            <div><h2>Matches Played Per Year</h2></div>
+            <div><h2>Matches Won By each Team In Each Season</h2></div>
+            <div></div>
+            <div></div>
+        </div>
+    </nav> -->
         <div id="container">
             <script>
                 
-                console.log({{xAxisData|safe}})
-                console.log({{yAxisData|safe}})
-                Highcharts.chart('container',plotMatchesPerYear({{xdata|safe}},{{ydata|safe}}))    
+                console.log({{xAxisData | safe}})
+                console.log({{yAxisData | safe}})
+                Highcharts.chart("container", plotMatchesPerYear({{xdata|safe}}, {{ydata|safe}}))    
             </script>
     
     </div>
